@@ -119,7 +119,7 @@ setTimeout(function() {
     /*r.sendKeyDown(k);
     r.sendKeyUp(k);*/
 
-    if (0) {
+    if (1) {
         var stuff = 'echo "hello world"'.split('');
         stuff.push('enter');
         //sendKeys(stuff);
@@ -130,7 +130,7 @@ setTimeout(function() {
 
     //r.sendPointer(20, 40, 0); // x, y, mask
     
-    if (1) {
+    if (0) {
         var points = [];
         (function() {
             var I = 32;
