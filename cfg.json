@@ -1,5 +1,5 @@
 {
-    "host":         "192.168.56.101",
+    "host":         "192.168.56.2",
     "port":         5900,
     "password":     "secret",
     "securityType": "vnc"
