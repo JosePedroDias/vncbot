@@ -6,6 +6,10 @@ var PNG    = require('png');
 
 
 
+var DEBUG = 0;
+
+
+
 var keys = {
     backspace     : 0xff08,
     bs            : 0xff08,
@@ -81,7 +85,9 @@ var saveRectNow = function(rect, path) {
     setRectAlpha(rect);
     var data = png.encodeSync();
     fs.writeFileSync(path, data, 'binary');
-    console.log('saved ' + rect.width + 'x' + rect.height + ' to ' + path);
+    if (DEBUG) {
+        console.log('saved ' + rect.width + 'x' + rect.height + ' to ' + path);
+    }
 };
 
 
@@ -91,8 +97,10 @@ var saveRect = function(rect, path, cb) {
     setRectAlpha(rect);
     png.encode(function(data) {
         fs.writeFile(path, data, 'binary', function(err) {
-            cb(err);
-            if (!err) {
+            if (cb) {
+                cb(err);
+            }
+            if (DEBUG && !err) {
                 console.log('saved ' + rect.width + 'x' + rect.height + ' to ' + path);
             }
         });
@@ -101,9 +109,11 @@ var saveRect = function(rect, path, cb) {
 
 
 
-var DEBUG = true;
 
 
+var pendingScreens = {};
+
+var dims = [1, 1];
 
 var vncbot = function(cfg) {
 
@@ -112,9 +122,23 @@ var vncbot = function(cfg) {
 
 
     r.on('raw', function(rect) {
-        //console.log('-> RAW');
         assert.equal(rect.bitsPerPixel, 32);
-        saveRectNow(rect, '/tmp/x.png');
+
+        var k = [rect.x, rect.y, rect.width, rect.height].join('|');
+        if (DEBUG) {
+            console.log('-> RAW ' + k);
+        }
+        var cb = pendingScreens[k];
+        if (cb) {
+            if (DEBUG) { console.log('w/ cb'); }
+            var result = cb(rect);
+            if (result) {
+                saveRect(rect, result);
+            }
+        }
+        else {
+            if (DEBUG) { console.log('wo/ cb'); }
+        }
     });
 
     r.on('error', function(err) {
@@ -123,6 +147,14 @@ var vncbot = function(cfg) {
 
     r.on('end', function() {
         console.log('ENDED');
+    });
+
+
+
+    r.dimensions(function(_dims) {
+        dims[0] = _dims.width;
+        dims[1] = _dims.height;
+        if (DEBUG) { console.log('DIMS: ' + dims.join('x')); }
     });
 
     
@@ -190,12 +222,22 @@ var vncbot = function(cfg) {
 
         // SCREEN OUTPUT
 
-        redraw: function() {
+        redraw: function(cb) {
+            var k = [0, 0, dims[0], dims[1]].join('|');
+            pendingScreens[k] = cb;
             r.requestRedraw();
         },
 
-        update: function(x, y, w, h) {
+        update: function(x, y, w, h, cb) {
+            var k = [x, y, w, h].join('|');
+            pendingScreens[k] = cb;
             r.requestUpdate({x:x, y:y, width:w, height:h});
+        },
+
+
+        
+        end: function() {
+            r.end();
         }
 
     };

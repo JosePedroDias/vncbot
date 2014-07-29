@@ -51,8 +51,17 @@ setTimeout(function() {
 
 
 
-    //v.update(0, 0, 128, 128);
+    /*v.update(0, 0, 128, 128, function(rect) {
+        return '/tmp/128.png';
+    });*/
 
-    v.redraw();
+    //v.redraw();
+    
+    /*v.redraw(function(rect) {
+        return '/tmp/cenas.png';
+    });*/
 
-}, 2000);
+
+    setTimeout(function() { v.end(); }, 3000);
+
+}, 500);
