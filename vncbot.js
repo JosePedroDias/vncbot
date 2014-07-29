@@ -6,50 +6,53 @@ var PNG    = require('png');
 
 
 
-var DEBUG = 0;
+var DEBUG = 1;
 
 
 
 var keys = {
-    backspace     : 0xff08,
-    bs            : 0xff08,
-    tab           : 0xff09,
-    'return'      : 0xff0d,
-    enter         : 0xff0d,
-    escape        : 0xff1b,
-    insert        : 0xff63,
-    'delete'      : 0xffff,
-    del           : 0xffff,
-    home          : 0xff50,
-    end           : 0xff57,
-    page_up       : 0xff55,
-    page_down     : 0xff56,
-    left          : 0xff51,
-    up            : 0xff52,
-    right         : 0xff53,
-    down          : 0xff54,
-    f1            : 0xffbe,
-    f2            : 0xffbf,
-    f3            : 0xffc0,
-    f4            : 0xffc1,
-    f5            : 0xffc2,
-    f6            : 0xffc3,
-    f7            : 0xffc4,
-    f8            : 0xffc5,
-    f9            : 0xffc6,
-    f10           : 0xffc7,
-    f11           : 0xffc8,
-    f12           : 0xffc9,
-    shift_left    : 0xffe1,
-    shift_right   : 0xffe2,
-    control_left  : 0xffe3,
-    control_right : 0xffe4,
-    meta_left     : 0xffe7,
-    meta_right    : 0xffe8,
-    alt           : 0xffe9,
-    alt_left      : 0xffe9,
-    alt_right     : 0xffea,
-    alt_gr        : 0xffea
+    backspace: 0xff08,
+    tab      : 0xff09,
+    enter    : 0xff0d,
+    esc      : 0xff1b, // convenience
+    escape   : 0xff1b,
+    ins      : 0xff63, // convenience
+    insert   : 0xff63,
+    del      : 0xffff, // convenience
+    'delete' : 0xffff,
+    home     : 0xff50,
+    end      : 0xff57,
+    pageUp   : 0xff55,
+    pageDown : 0xff56,
+    left     : 0xff51,
+    up       : 0xff52,
+    right    : 0xff53,
+    down     : 0xff54,
+    f1       : 0xffbe,
+    f2       : 0xffbf,
+    f3       : 0xffc0,
+    f4       : 0xffc1,
+    f5       : 0xffc2,
+    f6       : 0xffc3,
+    f7       : 0xffc4,
+    f8       : 0xffc5,
+    f9       : 0xffc6,
+    f10      : 0xffc7,
+    f11      : 0xffc8,
+    f12      : 0xffc9,
+    shift    : 0xffe1, // convenience
+    shiftL   : 0xffe1,
+    shiftR   : 0xffe2,
+    ctrl     : 0xffe3, // convenience 
+    control  : 0xffe3, // convenience
+    controlL : 0xffe3,
+    controlR : 0xffe4,
+    win      : 0xffe7, // convenience
+    meta     : 0xffe7, // convenience
+    metaL    : 0xffe7,
+    metaR    : 0xffe8,
+    alt      : 0xffe9,
+    altGR    : 0xffea
 };
 
 
@@ -115,7 +118,7 @@ var pendingScreens = {};
 
 var dims = [1, 1];
 
-var vncbot = function(cfg) {
+var vncbot = function(cfg, onReadyCb) {
 
     var r = new RFB(cfg);
 
@@ -155,6 +158,9 @@ var vncbot = function(cfg) {
         dims[0] = _dims.width;
         dims[1] = _dims.height;
         if (DEBUG) { console.log('DIMS: ' + dims.join('x')); }
+        if (onReadyCb) {
+            onReadyCb();
+        }
     });
 
     
@@ -165,30 +171,66 @@ var vncbot = function(cfg) {
 
         sendKeysNow: function(queue) {
             queue.forEach(function(k) {
+                if (DEBUG) { console.log('KEY: ' + k); }
                 var kk = keyToHex(k);
                 r.sendKey(kk, 1);
                 r.sendKey(kk, 0);
             });
         },
 
-        sendKeys: function(queue, dt) {
+        sendKeys: function(queue, dt, cb) {
+            //console.log('QUEUE: ' + JSON.stringify(queue));
             var timer;
+            if (!dt) { dt = 25; }
 
             var onTimer = function() {
                 var k = queue.shift();
+                var isDown;
+
                 if (k === undefined) {
-                    return clearInterval(timer);
+                    clearInterval(timer);
+                    if (cb) { return cb(); } else { return; }
                 }
-                if (DEBUG) { console.log('KEY: ' + k); }
+
+                if (typeof k !== 'string' && k.length) {
+                    isDown = !!k[1];
+                    k = k[0];
+                }
+
+                if (DEBUG) {
+                    if (isDown !== undefined) {
+                        console.log('KEY: ' + k + ' ' + (isDown ? 1 : 0));
+                    }
+                    else {
+                        console.log('KEY: ' + k);
+                    }
+                }
+
                 k = keyToHex(k);
-                r.sendKey(k, 1);
-                r.sendKey(k, 0);
+
+                if (isDown !== undefined) {
+                    r.sendKey(k, isDown);
+                }
+                else {
+                    r.sendKey(k, 1);
+                    r.sendKey(k, 0);
+                }
             };
 
             timer = setInterval(onTimer, dt);
         },
 
+        sendKeyCommand: function(s, dt, cb) {
+            var a = s.split('+');
+            var b = clone(a).reverse();
+            a = a.map(function(i) { return [i, 1]; });
+            b = b.map(function(i) { return [i, 0]; });
+            a = a.concat(b);
+            api.sendKeys(a, dt, cb);
+        },
+
         sendKey: function(k, isDown) {
+            if (DEBUG) { console.log('KEY: ' + k + ' ' + (isDown ? 1 : 0) ); }
             if (typeof k === 'string') {
                 k = keyToHex(k);
             }
@@ -199,13 +241,14 @@ var vncbot = function(cfg) {
 
         // POINTER INPUT
 
-        sendPointers: function(queue, dt) {
+        sendPointers: function(queue, dt, cb) {
             var timer;
 
             var onTimer = function() {
                 var p = queue.shift();
                 if (p === undefined) {
-                    return clearInterval(timer);
+                    clearInterval(timer);
+                    if (cb) { return cb(); } else { return; }
                 }
                 if (DEBUG) { console.log('POINTER: ' + p); }
                 r.sendPointer(p[0], p[1], p[2]); // x, y, mask
@@ -232,6 +275,12 @@ var vncbot = function(cfg) {
             var k = [x, y, w, h].join('|');
             pendingScreens[k] = cb;
             r.requestUpdate({x:x, y:y, width:w, height:h});
+        },
+
+
+
+        wait: function(dt, cb) {
+            setTimeout(cb, dt);
         },
 
 
