@@ -273,8 +273,10 @@ var vncbot = function(cfg, onReadyCb) {
         // SCREEN OUTPUT
 
         redraw: function(cb) {
-            var k = [0, 0, dims[0], dims[1]].join('|');
-            pendingScreens[k] = cb;
+            if (cb) {
+                var k = [0, 0, dims[0], dims[1]].join('|');
+                pendingScreens[k] = cb;
+            }
             r.requestRedraw();
 
             /*r.sendPointer(0, 0, 0);
@@ -287,8 +289,10 @@ var vncbot = function(cfg, onReadyCb) {
         },
 
         update: function(x, y, w, h, cb) {
-            var k = [x, y, w, h].join('|');
-            pendingScreens[k] = cb;
+            if (cb) {
+                var k = [x, y, w, h].join('|');
+                pendingScreens[k] = cb;
+            }
             r.requestUpdate({x:x, y:y, width:w, height:h});
         },
 

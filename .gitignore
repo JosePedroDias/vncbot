@@ -1,2 +1,4 @@
 node_modules
 stuff.js
+bridge/creds/*.pem
+bridge/creds/*.csr

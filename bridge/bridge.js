@@ -3,11 +3,8 @@
     'use strict';
 
 
-    //console.log('1');
 
-
-
-    var HOST = 'http://192.168.56.1:6688';
+    var HOST = 'http://192.168.56.1:6688'; // 443
 
 
 
@@ -23,7 +20,6 @@
 
     var isDomElement = function(o) {
         return o instanceof HTMLElement;
-        //return typeof i.nodeType !== undefined;
     };
 
 
@@ -40,8 +36,10 @@
     var cloneWithoutLoops = function(o) {
         var seen = [];
 
+        if (o === undefined || o === null) { return o; }
+
         var s = JSON.stringify(o, function(key, val) {
-           if (val !== null && val !== undefined && typeof val === 'object') {
+            if (val !== null && typeof val === 'object') {
                 if (isDomElement(val)) {
                     return {
                         type:     'DOMElement',
@@ -65,27 +63,18 @@
         });
 
         return JSON.parse(s);
-
-        //return JSON.parse( CircularJSON.stringify(o, null, null, true) );
     };
 
 
 
     addScript(HOST + '/socket.io/socket.io.js');
 
-    // https://github.com/WebReflection/circular-json
-    //addScript('https://raw.githubusercontent.com/WebReflection/circular-json/master/build/circular-json.js');
-    //addScript('http://rawgit.com/WebReflection/circular-json/master/build/circular-json.js');
-
 
 
     setTimeout(function() {
-        //console.log('2');
-        
         var socket = io.connect('192.168.56.1:6688');
 
         socket.on('log', function(data) {
-            //console.log('3');
             console.log('log', data);
 
             socket.emit('log', 'hi from the client');
@@ -98,8 +87,7 @@
             try {
                 var res = eval(data);
                 console.log(res);
-                socket.emit('data', cloneWithoutLoops(res)); // TODO
-                // socket.emit('data', res);
+                socket.emit('data', cloneWithoutLoops(res));
             } catch(ex) {
                 socket.emit('data', ex.toString());
             }

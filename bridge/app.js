@@ -1,17 +1,43 @@
+var fs       = require('fs');
 var http     = require('http');
+var https    = require('https');
 var repl     = require('repl');
 var express  = require('express');
 var socketio = require('socket.io');
 
 
 
-var runApp = function(v, onBrowserGapCb) {
+var USE_HTTPS = 0;
+var PORT      = 6688; // 443
+
+
+
+var key, cert, credentials;
+if (USE_HTTPS) {
+    key  = fs.readFileSync('./bridge/creds/key.pem',  'utf8');
+    cert = fs.readFileSync('./bridge/creds/cert.pem', 'utf8');
+    credentials = {key:key, cert:cert};
+}
+
+
+
+var runApp = function(v, callbacks) {
+    if (!callbacks) { callbacks = {}; }
+
     var app = express();
-    var server = http.Server(app);
+    
+    var server;
+    if (USE_HTTPS) {
+        server = https.createServer(credentials, app);
+    }
+    else {
+        server = http.Server(app);
+    }
+
     var io = socketio(server);
     io.set('origins', '*:*');
 
-    server.listen(6688);
+    server.listen(PORT);
 
     app.get('/purple.html', function(req, res) {
         res.sendfile(__dirname + '/purple.html');
@@ -20,7 +46,11 @@ var runApp = function(v, onBrowserGapCb) {
     app.get('/reportGap/:x/:y', function(req, res) {
         var x = req.params.x;
         var y = req.params.y;
-        onBrowserGapCb([x, y]);
+
+        if (callbacks.onBrowserGap) {
+            callbacks.onBrowserGap([x, y]);
+        }
+        
         res.send('THANK YOU FOR ' + x + ' ' + y);
     });
 
@@ -47,7 +77,8 @@ var runApp = function(v, onBrowserGapCb) {
 
         socket.on('data', function(data) {
             if (waitingCb) {
-                waitingCb(null, JSON.stringify(data) );
+                //waitingCb(null, JSON.stringify(data) );
+                waitingCb(null, data);
                 waitingCb = undefined;
                 return;
             }
@@ -77,6 +108,14 @@ var runApp = function(v, onBrowserGapCb) {
             //console.log('[' + JSON.stringify(cmd) + ']');
 
             if (cmd.indexOf('quit') === 0) {
+                // TODO
+                return cb(null);
+            }
+
+            if (cmd.indexOf('own') === 0) {
+                if (callbacks.onOwn) {
+                    callbacks.onOwn();
+                }
                 return cb(null);
             }
 
@@ -108,10 +147,8 @@ var runApp = function(v, onBrowserGapCb) {
                 }
             }
 
-
-            waitingCb = cb;
-
             if (lastSocket) {
+                waitingCb = cb;
                 lastSocket.emit('js', cmd);
             }
             else {
