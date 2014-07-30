@@ -4,9 +4,9 @@
   "description": "vnc scripting",
   "main": "go.js",
   "author": {
-    "name" : "José Pedro Dias",
-    "email" : "jose.pedro.dias@gmail.com",
-    "url" : "http://josepedrodias.com/"
+    "name": "José Pedro Dias",
+    "email": "jose.pedro.dias@gmail.com",
+    "url": "http://josepedrodias.com/"
   },
   "keywords": [
     "vnc",
@@ -25,5 +25,9 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/JosePedroDias/vncbot.git"
+  },
+  "devDependencies": {
+    "express": "^4.7.2",
+    "socket.io": "^1.0.6"
   }
 }
