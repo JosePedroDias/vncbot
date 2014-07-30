@@ -20,7 +20,7 @@
   "license": "ISC",
   "dependencies": {
     "png": "^3.0.3",
-    "rfb": "^0.2.3"
+    "rfb": "git://github.com/JosePedroDias/node-rfb"
   },
   "repository": {
     "type": "git",

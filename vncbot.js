@@ -290,6 +290,12 @@ var vncbot = function(cfg, onReadyCb) {
 
 
 
+        copyText: function(text) {
+            r.copyText(text);
+        },
+
+
+
         // WAITING
 
         wait: function(dt, cb) {
