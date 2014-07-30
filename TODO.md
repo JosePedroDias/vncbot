@@ -1,13 +1,5 @@
-**How do we know the window dimensions?**
+* test if browser is active prior to owning it (via OS or by requesting an URL I control)
 
-Start with a browser with a solid purple background.
-Assert limits by iterating from center of the screen it the 4 main directions.
+* expose and test clipboard vnc api
 
-
-
-**How do we interact with the browser?**
-
-Using keyboard shortcuts:
-
-* open the console
-* load a CORS websocket via script in the document.head
+* get rid on vbox interface in favor of http://localtunnel.me/ integration

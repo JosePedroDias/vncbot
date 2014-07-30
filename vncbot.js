@@ -7,6 +7,8 @@ var PNG    = require('png');
 
 
 var DEBUG = 1;
+var DEBUG_LOW = 0;
+var DEBUG_WAITS = 1;
 
 
 
@@ -159,7 +161,7 @@ var vncbot = function(cfg, onReadyCb) {
         dims[1] = _dims.height;
         if (DEBUG) { console.log('DIMS: ' + dims.join('x')); }
         if (onReadyCb) {
-            onReadyCb();
+            onReadyCb(dims);
         }
     });
 
@@ -171,7 +173,7 @@ var vncbot = function(cfg, onReadyCb) {
 
         sendKeysNow: function(queue) {
             queue.forEach(function(k) {
-                if (DEBUG) { console.log('KEY: ' + k); }
+                if (DEBUG_LOW) { console.log('KEY: ' + k); }
                 var kk = keyToHex(k);
                 r.sendKey(kk, 1);
                 r.sendKey(kk, 0);
@@ -197,7 +199,7 @@ var vncbot = function(cfg, onReadyCb) {
                     k = k[0];
                 }
 
-                if (DEBUG) {
+                if (DEBUG_LOW) {
                     if (isDown !== undefined) {
                         console.log('KEY: ' + k + ' ' + (isDown ? 1 : 0));
                     }
@@ -230,7 +232,7 @@ var vncbot = function(cfg, onReadyCb) {
         },
 
         sendKey: function(k, isDown) {
-            if (DEBUG) { console.log('KEY: ' + k + ' ' + (isDown ? 1 : 0) ); }
+            if (DEBUG_LOW) { console.log('KEY: ' + k + ' ' + (isDown ? 1 : 0) ); }
             if (typeof k === 'string') {
                 k = keyToHex(k);
             }
@@ -250,7 +252,7 @@ var vncbot = function(cfg, onReadyCb) {
                     clearInterval(timer);
                     if (cb) { return cb(); } else { return; }
                 }
-                if (DEBUG) { console.log('POINTER: ' + p); }
+                if (DEBUG_LOW) { console.log('POINTER: ' + p); }
                 r.sendPointer(p[0], p[1], p[2]); // x, y, mask
             };
 
@@ -261,6 +263,11 @@ var vncbot = function(cfg, onReadyCb) {
             r.sendPointer(x, y, mask);
         },
 
+        sendClick: function(x, y) {
+            r.sendPointer(x, y, 1);
+            r.sendPointer(x, y, 0);
+        },
+
 
 
         // SCREEN OUTPUT
@@ -269,6 +276,14 @@ var vncbot = function(cfg, onReadyCb) {
             var k = [0, 0, dims[0], dims[1]].join('|');
             pendingScreens[k] = cb;
             r.requestRedraw();
+
+            /*r.sendPointer(0, 0, 0);
+            r.sendPointer(1, 0, 1);
+            r.sendPointer(1, 0, 1);
+
+            setTimeout(function() {
+                r.requestRedraw();
+            }, 500);*/
         },
 
         update: function(x, y, w, h, cb) {
@@ -279,12 +294,24 @@ var vncbot = function(cfg, onReadyCb) {
 
 
 
+        // WAITING
+
         wait: function(dt, cb) {
-            setTimeout(cb, dt);
+            if (!DEBUG_WAITS) {
+                return setTimeout(cb, dt);
+            }
+
+            console.log('waiting ' + dt + ' ms...');
+            setTimeout(function() {
+                console.log('resuming');
+                cb();
+            }, dt);
         },
 
 
-        
+
+        // TERMINATE SESSION
+
         end: function() {
             r.end();
         }

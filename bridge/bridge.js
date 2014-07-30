@@ -21,20 +21,52 @@
 
 
 
+    var isDomElement = function(o) {
+        return o instanceof HTMLElement;
+        //return typeof i.nodeType !== undefined;
+    };
+
+
+
+    var isNodeList = function(o) {
+        var toStr = Object.prototype.toString.call(o);
+        return /^\[object (HTMLCollection|NodeList|Object)\]$/.test(toStr) &&
+               o.hasOwnProperty('length') &&
+               (o.length === 0 || (typeof o[0] === "object" && o[0].nodeType > 0));
+    };
+
+
+
     var cloneWithoutLoops = function(o) {
-        /*var seen = [];
+        var seen = [];
 
         var s = JSON.stringify(o, function(key, val) {
-           if (val !== null && typeof val === 'object') {
-                if (seen.indexOf(val) !== -1) { return; }
+           if (val !== null && val !== undefined && typeof val === 'object') {
+                if (isDomElement(val)) {
+                    return {
+                        type:     'DOMElement',
+                        id:        val.id,
+                        className: val.className,
+                        style:     val.getAttribute('style'),
+                        nodeName:  val.nodeName
+                        //bbox:      val.getBoundingClientRect(),
+                        //innerHTML: val.innerHTML
+                    };
+                }
+                else if (isNodeList(val)) {
+                    return Array.prototype.slice.call(val);
+                }
+                else if (seen.indexOf(val) !== -1) {
+                    return;
+                }
                 seen.push(val);
             }
             return val;
         });
 
-        return JSON.parse(s);*/
+        return JSON.parse(s);
 
-        return JSON.parse( CircularJSON.stringify(o, null, null, true) );
+        //return JSON.parse( CircularJSON.stringify(o, null, null, true) );
     };
 
 
@@ -43,7 +75,7 @@
 
     // https://github.com/WebReflection/circular-json
     //addScript('https://raw.githubusercontent.com/WebReflection/circular-json/master/build/circular-json.js');
-    addScript('http://rawgit.com/WebReflection/circular-json/master/build/circular-json.js');
+    //addScript('http://rawgit.com/WebReflection/circular-json/master/build/circular-json.js');
 
 
 

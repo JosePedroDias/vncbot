@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+
+        <title>purple test</title>
+        
+        <style id="jsbin-css">
+            html {
+                height: 100%;
+            }
+            body {
+                height: 100%;
+                overflow: hidden;
+                background-color: #FF00FF;
+            }
+        </style>
+    </head>
+
+    <body>
+        <script type="text/javascript">
+            document.documentElement.onclick = function(ev) {
+                ev = ev || event;
+                var sPos = [ev.screenX, ev.screenY];
+                var cPos = [ev.clientX, ev.clientY];
+                var diff = [
+                    sPos[0] - cPos[0],
+                    sPos[1] - cPos[1]
+                ];
+                location.href = '/reportGap/' + diff[0] + '/' + diff[1];
+            };
+        </script>
+    </body>
+</html>

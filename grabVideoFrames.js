@@ -11,6 +11,7 @@ var andEnter = function(text) {
 };
 
 var lines = function(lines) {
+    /*jshint boss:true */
     var line, res = [];
     while (line = lines.shift()) {
         res = res.concat( line.split('') );
@@ -21,47 +22,92 @@ var lines = function(lines) {
 
 
 
-var SCRIPT_URL = 'http://192.168.56.1:6688/bridge.js';
+var HOST = 'http://192.168.56.1:6688';
+var SCRIPT_URL = HOST + '/bridge.js';
+var PURPLE_URL = HOST + '/purple.html';
+var TARGET_URL = 'http://js.sapo.pt/Projects/Video/140708R1/sample/main.html';
 var bookmarklet = "javascript:(function(){var head=document.getElementsByTagName('head')[0],script=document.createElement('script');script.type='text/javascript';script.src='" + SCRIPT_URL + "?' + Math.floor(Math.random()*99999);head.appendChild(script);})(); void 0";
 
+var IE      = 'iexplore';
+var CHROME  = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+var FIREFOX = '';
+
+var SCREEN_DIMS;
+var BROWSER_GAP;
 
 
 
-var v = vncbot(cfg, function() {
-
-    //v.sendKeyCommand('alt+tab');
-
-    /*v.sendKeyCommand('ctrl+esc', 50, function() {
-        v.sendKeys(andEnter('iexplore'), 50, function() {
-            v.wait(2000, function() {
-                v.sendKeyCommand('alt+d', 50, function() {
-                    v.sendKeys(andEnter('http://videos.sapo.pt/9jOwistOA5Z8ED7JTjHz'), 50, function() {
-                        console.log('ON THE PAGE');*/
-
-                        v.sendKeyCommand('alt+d', 50, function() {
-                            v.sendKeys(andEnter(bookmarklet), 10, function() {
-                                console.log('OWNED');
-                            });
-                        });
-                    /*});
-                });
-            });
+var runInWindows = function(cmd, cb) {
+    v.sendKeyCommand('ctrl+esc', 20, function() {
+        v.sendKeys(andEnter(cmd), 20, function() {
+            v.wait(2000, cb);
         });
-    });*/
+    });
+};
 
-});
+var goToUrl = function(url, cb) {
+    console.log('GOING TO URL ' + url);
+    v.sendKeyCommand('alt+d', 20, function() {
+        v.sendKeys(andEnter(url), 20, function() {
+            v.wait(2000, cb);
+        });
+    });
+};
+
+var ownBrowser = function(cb) {
+    goToUrl(bookmarklet, cb);
+};
+
+var measureBrowser = function(cb) {
+    goToUrl(PURPLE_URL, function() {
+        var xc = ~~(SCREEN_DIMS[0] / 2);
+        var yc = ~~(SCREEN_DIMS[1] / 2);
+        //console.log(xc, yc);
+        v.sendClick(xc, yc);
+    });
+};
 
 
 
-runApp(v);
+//1)
+var v = vncbot(
+    cfg,
+    function(dims) { // onReady
+        console.log('');
+
+        SCREEN_DIMS = dims;
+
+        //v.wait(500, function() {
+        runInWindows(CHROME, function() {
+            measureBrowser(function() { /*2)*/ });
+        });
+    }
+);
 
 
 
-/*
+runApp(
+    v, // vncbot instance
+    function(dims) { // onBrowserGap
+        console.log('BROWSER GAP REPORTED: ' + dims.join('x'));
 
-// trying to get the box to crop for the element e...
-window.e = document.querySelector('iframe');
-window.o = e.getBoundingClientRect();
-[~~(o.left + (window.screenX | window.screenLeft) + (window.outerWidth - window.innerWidth)), ~~(o.top + (window.screenY | window.screenHeight) + (window.outerHeight - window.innerHeight)), ~~(o.width), ~~(o.height)].join(' ')
+        BROWSER_GAP = dims;
 
-*/
+        //3)
+        goToUrl(TARGET_URL, function() {
+            ownBrowser(function() {
+                console.log('DONE');
+                console.log("  window.g = [" + BROWSER_GAP.join(', ') + ']');
+                console.log("  window.e = document.querySelector('iframe')");
+                console.log("  window.d = e.getBoundingClientRect()");
+                console.log("  ['shot', ~~(g[0] + d.left + 0.5),~~(g[1] + d.top + 0.5), ~~(d.width + 0.5), ~~(d.height + 0.5)].join(' ')");
+                
+                // SELECT VIDEO ELEMENT
+                // MEASURE IT
+                // TAKE SCREENSHOT
+                // PLAY
+                // TAKE SCREENSHOTS UNTIL DURATION
+            })
+        });
+    }
+);

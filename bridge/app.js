@@ -5,13 +5,24 @@ var socketio = require('socket.io');
 
 
 
-var runApp = function(v) {
+var runApp = function(v, onBrowserGapCb) {
     var app = express();
     var server = http.Server(app);
     var io = socketio(server);
     io.set('origins', '*:*');
 
     server.listen(6688);
+
+    app.get('/purple.html', function(req, res) {
+        res.sendfile(__dirname + '/purple.html');
+    });
+
+    app.get('/reportGap/:x/:y', function(req, res) {
+        var x = req.params.x;
+        var y = req.params.y;
+        onBrowserGapCb([x, y]);
+        res.send('THANK YOU FOR ' + x + ' ' + y);
+    });
 
     app.get('/bridge.js', function(req, res) {
         //console.log('SENDING BRIDGE');
