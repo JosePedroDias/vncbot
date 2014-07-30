@@ -96,7 +96,7 @@ runApp(
             ownBrowser();
         },
         onBrowserGap: function(dims) {
-            console.log('BROWSER GAP REPORTED: ' + dims.join('x'));
+            //console.log('BROWSER GAP REPORTED: ' + dims.join('x'));
 
             BROWSER_GAP = dims;
 
@@ -108,8 +108,7 @@ runApp(
                 ownBrowser(function() {
                     console.log('DONE');
                     console.log("  window.g = [" + BROWSER_GAP.join(', ') + ']');
-                    // console.log("  window.e = document.querySelector('video')");
-                    console.log("  window.e = document.querySelector('iframe')");
+                    console.log("  window.e = document.querySelector('iframe')"); // video | iframe
                     console.log("  window.d = e.getBoundingClientRect()");
                     console.log("  ['shot', ~~(g[0] + d.left + 0.5),~~(g[1] + d.top + 0.5), ~~(d.width + 0.5), ~~(d.height + 0.5)].join(' ')");
                     
