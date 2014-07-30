@@ -10,16 +10,6 @@ var andEnter = function(text) {
     return text.split('').concat(['enter']);
 };
 
-var lines = function(lines) {
-    /*jshint boss:true */
-    var line, res = [];
-    while (line = lines.shift()) {
-        res = res.concat( line.split('') );
-        res.push('enter');
-    }
-    return res;
-};
-
 
 
 var HOST = 'http://192.168.56.1:6688'; // 443
