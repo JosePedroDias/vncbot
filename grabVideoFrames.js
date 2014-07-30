@@ -41,8 +41,8 @@ var BROWSER_GAP;
 
 
 var runInWindows = function(cmd, cb) {
-    v.sendKeyCommand('ctrl+esc', 20, function() {
-        v.sendKeys(andEnter(cmd), 20, function() {
+    v.sendKeyCommand('ctrl+esc', 10, function() {
+        v.sendKeys(andEnter(cmd), 10, function() {
             v.wait(2000, cb);
         });
     });
@@ -50,8 +50,8 @@ var runInWindows = function(cmd, cb) {
 
 var goToUrl = function(url, cb) {
     console.log('GOING TO URL ' + url);
-    v.sendKeyCommand('alt+d', 20, function() {
-        v.sendKeys(andEnter(url), 20, function() {
+    v.sendKeyCommand('alt+d', 10, function() {
+        v.sendKeys(andEnter(url), 10, function() {
             v.wait(2000, cb);
         });
     });

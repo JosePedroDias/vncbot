@@ -278,14 +278,6 @@ var vncbot = function(cfg, onReadyCb) {
                 pendingScreens[k] = cb;
             }
             r.requestRedraw();
-
-            /*r.sendPointer(0, 0, 0);
-            r.sendPointer(1, 0, 1);
-            r.sendPointer(1, 0, 1);
-
-            setTimeout(function() {
-                r.requestRedraw();
-            }, 500);*/
         },
 
         update: function(x, y, w, h, cb) {
